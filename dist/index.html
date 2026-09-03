@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#00205b">
+  <meta name="description" content="Simulador didáctico de sonómetro para aprender calibración, configuración, medición y análisis de ruido ocupacional.">
+  <title>Simulador de Sonómetro | Movida SST+</title>
+  <link rel="icon" type="image/png" href="assets/logo-movida-sst-plus.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="auth-locked">
+  <section class="login-gate" id="loginGate" aria-labelledby="loginTitle">
+    <div class="login-shell">
+      <div class="login-story">
+        <a class="login-brand" href="https://www.labho.movidasst.com" target="_self" aria-label="Volver al Laboratorio de Higiene Ocupacional">
+          <img src="assets/logo-movida-sst-plus.png" alt="Logo de La Movida de SST Plus">
+          <span><strong>La Movida de SST Plus</strong><small>De la Reacción a la Prevención</small></span>
+        </a>
+        <div class="login-story-copy">
+          <p class="login-eyebrow">LABORATORIO DE HIGIENE OCUPACIONAL</p>
+          <h1 id="loginTitle">Simulador profesional de sonómetro</h1>
+          <p>Practica la configuración, la calibración, la medición y el análisis por bandas en un entorno seguro y didáctico.</p>
+          <ul>
+            <li>Nivel global, octavas y tercios de octava</li>
+            <li>Ponderaciones A, C y Z</li>
+            <li>Interpretación guiada de cada función</li>
+          </ul>
+        </div>
+        <a class="login-back" href="https://www.labho.movidasst.com" target="_self">← Volver a LABHO</a>
+      </div>
+
+      <div class="login-card">
+        <div class="login-card-heading">
+          <span class="member-icon" aria-hidden="true">✓</span>
+          <div><p>ACCESO PARA INTEGRANTES</p><h2>Ingresa al simulador</h2></div>
+        </div>
+        <p class="login-intro">Utiliza la misma cédula y clave —código de integrante— de tu registro en La Movida SST Plus.</p>
+
+        <form class="login-form" id="memberLogin" novalidate>
+          <label for="memberId">Cédula de identidad</label>
+          <input id="memberId" name="cedula" type="text" inputmode="numeric" autocomplete="username" maxlength="20" placeholder="Solo números" required>
+
+          <label for="memberPassword">Clave o código de integrante</label>
+          <div class="password-field">
+            <input id="memberPassword" name="codigo" type="password" autocomplete="current-password" maxlength="80" placeholder="Escribe tu clave" required>
+            <button id="togglePassword" type="button" aria-label="Mostrar clave" aria-pressed="false">Mostrar</button>
+          </div>
+
+          <p class="login-message" id="loginMessage" role="status" aria-live="polite"></p>
+          <button class="login-submit" id="loginSubmit" type="submit"><span>Ingresar al simulador</span><i aria-hidden="true">→</i></button>
+        </form>
+
+        <div class="register-callout">
+          <strong>¿No estás registrado?</strong>
+          <span>Regístrate gratuitamente para obtener tu código de integrante.</span>
+          <a href="https://registro.movidasst.com" target="_self">Registrarme ahora</a>
+        </div>
+        <p class="login-privacy">La validación se realiza con el registro oficial. La aplicación no guarda tu cédula ni tu clave.</p>
+        <div class="login-contact"><span>Elaborado por <strong>David Linares Brea</strong></span><a href="mailto:info@movidasst.com">info@movidasst.com</a><a href="tel:+56968615650">+56 9 6861 5650</a></div>
+      </div>
+    </div>
+  </section>
+
+  <div id="appShell" hidden aria-hidden="true">
+  <header class="topbar">
+    <a class="brand" href="https://www.labho.movidasst.com" target="_self" aria-label="Volver al Laboratorio de Higiene Ocupacional">
+      <img class="brand-mark" src="assets/logo-movida-sst-plus.png" alt="Logo de La Movida de SST Plus">
+      <span><strong>La Movida de SST Plus</strong><small>De la Reacción a la Prevención</small></span>
+    </a>
+    <div class="top-actions">
+      <button id="guidedToggle" class="chip active" type="button" aria-pressed="true">Modo guiado</button>
+      <button id="soundToggle" class="chip" type="button" aria-pressed="false">Sonido: apagado</button>
+      <button id="helpBtn" class="round-help" type="button" aria-label="Abrir ayuda">?</button>
+    </div>
+  </header>
+
+  <nav class="resource-bar" aria-label="Enlaces de La Movida SST">
+    <a class="resource-link back-link" href="https://www.labho.movidasst.com" target="_self">← Volver a LABHO</a>
+    <a class="resource-link channel-link" href="https://whatsapp.com/channel/0029Va0mlH5Jf05mrcCz8r3e" target="_self">Canal de WhatsApp</a>
+    <div class="member-session"><span>Hola, <strong id="memberName">integrante</strong></span><button id="logoutBtn" type="button">Cerrar sesión</button></div>
+  </nav>
+
+  <main class="workbench">
+    <section class="context-panel" aria-labelledby="contextTitle">
+      <div>
+        <p class="eyebrow">LABORATORIO DE HIGIENE OCUPACIONAL</p>
+        <h1 id="contextTitle">Aprende a operar un sonómetro</h1>
+        <p class="intro">Configura el instrumento y observa cómo cada decisión modifica la medición y su interpretación.</p>
+      </div>
+
+      <label class="field-label" for="scenarioSelect">Fuente de ruido simulada</label>
+      <select id="scenarioSelect" class="scenario-select">
+        <option value="compressor">Sala de compresores</option>
+        <option value="grinder">Esmerilado de metal</option>
+        <option value="press">Prensa de impacto</option>
+        <option value="ventilation">Ventilación industrial</option>
+        <option value="mixed">Taller con varias fuentes</option>
+      </select>
+
+      <div class="scenario-card">
+        <div class="scenario-visual" id="scenarioVisual" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div>
+          <strong id="scenarioName">Sala de compresores</strong>
+          <p id="scenarioDescription">Ruido continuo con energía dominante en frecuencias bajas y medias.</p>
+        </div>
+      </div>
+
+      <div class="mission-card" id="guideCard" aria-live="polite">
+        <div class="mission-heading"><span id="guideStep">Paso 1 de 6</span><span class="status-dot"></span></div>
+        <div class="guide-progress" aria-hidden="true"><i id="guideProgress"></i></div>
+        <strong id="guideTitle">Enciende el instrumento</strong>
+        <p id="guideText">Pulsa el botón de encendido. En una medición real, verifica primero el estado físico, la batería y el micrófono.</p>
+        <button id="locateStepBtn" class="locate-step" type="button">Muéstrame dónde</button>
+      </div>
+
+      <div class="legend-card">
+        <strong>Alcance del simulador</strong>
+        <p>Los valores son didácticos. Este recurso no sustituye un sonómetro Clase 1 o Clase 2 ni una evaluación profesional.</p>
+      </div>
+    </section>
+
+    <section class="instrument-stage" aria-label="Sonómetro virtual Movida SST Plus">
+      <div class="meter-shadow"></div>
+      <article class="meter" id="meter">
+        <div class="windscreen" aria-hidden="true">
+          <div class="foam-grain"></div>
+        </div>
+        <div class="preamp" aria-hidden="true"><span></span><span></span></div>
+
+        <div class="meter-body">
+          <div class="meter-brand">
+            <img class="meter-logo" src="assets/logo-movida-sst-plus.png" alt="La Movida de SST Plus">
+            <span><strong>MOVIDA SST+</strong><small>MSL–PRO 360</small></span>
+            <span class="class-badge">SIM</span>
+          </div>
+
+          <div class="screen-shell">
+            <div class="screen-glare" aria-hidden="true"></div>
+            <div class="screen off" id="screen">
+              <div class="boot-screen" id="bootScreen">
+                <img class="boot-logo" src="assets/logo-movida-sst-plus.png" alt="Logo de La Movida de SST Plus">
+                <strong>MOVIDA SST+</strong>
+                <small>Sonómetro virtual</small>
+              </div>
+
+              <div class="display" id="display">
+                <div class="status-row">
+                  <span id="statusMode">GLOBAL</span>
+                  <span id="statusRun" class="run-state">LISTO</span>
+                  <span class="battery" aria-label="Batería 86 por ciento"><i></i></span>
+                </div>
+
+                <div class="measurement-view" id="globalView">
+                  <div class="primary-reading">
+                    <span id="metricLabel">LAF</span>
+                    <strong id="mainReading">--.-</strong>
+                    <span class="unit">dB</span>
+                  </div>
+                  <div class="level-track"><i id="levelBar"></i><span class="limit-mark"></span></div>
+                  <div class="scale"><span>30</span><span>70</span><span>100</span><span>140</span></div>
+                  <div class="metrics-grid">
+                    <div><span>LAeq</span><strong id="leqValue">--.-</strong></div>
+                    <div><span>Lmax</span><strong id="maxValue">--.-</strong></div>
+                    <div><span>LCpeak</span><strong id="peakValue">--.-</strong></div>
+                    <div><span>Tiempo</span><strong id="elapsedValue">00:00</strong></div>
+                  </div>
+                </div>
+
+                <div class="spectrum-view" id="spectrumView" hidden>
+                  <div class="spectrum-summary"><span id="spectrumLabel">1/1 OCT</span><strong id="spectrumOverall">--.- dB</strong></div>
+                  <div class="spectrum-bars" id="spectrumBars" aria-label="Espectro por bandas"></div>
+                  <div class="spectrum-footer"><span id="selectedFrequency">1 kHz</span><span id="selectedBandValue">--.- dB</span></div>
+                </div>
+
+                <div class="history-view" id="historyView" hidden>
+                  <div class="history-title">MEMORIA <span id="memoryCount">0 registros</span></div>
+                  <div class="history-list" id="historyList"><p>Sin mediciones guardadas</p></div>
+                </div>
+
+                <div class="menu-view" id="menuView" hidden>
+                  <div class="menu-title" id="menuTitle">CONFIGURACIÓN</div>
+                  <div class="menu-list" id="menuList"></div>
+                  <div class="softkey-hints"><span>◀ Volver</span><span>OK Elegir</span></div>
+                </div>
+
+                <div class="calibration-view" id="calibrationView" hidden>
+                  <span class="cal-label">CALIBRACIÓN ACÚSTICA</span>
+                  <div class="calibrator-graphic" aria-hidden="true"><i></i><span>CAL</span></div>
+                  <strong id="calReading">--.- dB</strong>
+                  <p id="calMessage">Seleccione el nivel de referencia</p>
+                  <div class="cal-options"><span id="cal94" class="active">94 dB</span><span id="cal114">114 dB</span></div>
+                </div>
+
+                <div class="screen-footer">
+                  <span id="weightingIndicator">A</span>
+                  <span id="timeIndicator">FAST</span>
+                  <span id="rangeIndicator">AUTO</span>
+                  <span id="clockIndicator">00:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="keypad" aria-label="Controles físicos del sonómetro">
+            <button class="key power-key" id="powerBtn" type="button" aria-label="Encender o apagar"><span>⏻</span><small>POWER</small></button>
+            <button class="key" id="menuBtn" type="button"><span>MENU</span><small>Configurar</small></button>
+            <button class="key arrow-key" id="upBtn" type="button" aria-label="Subir"><span>▲</span></button>
+            <button class="key ok-key" id="okBtn" type="button"><span>OK</span><small>Aceptar</small></button>
+            <button class="key arrow-key" id="downBtn" type="button" aria-label="Bajar"><span>▼</span></button>
+            <button class="key" id="backBtn" type="button"><span>◀</span><small>Volver</small></button>
+            <button class="key run-key" id="runBtn" type="button"><span>▶Ⅱ</span><small>Medir</small></button>
+            <button class="key save-key" id="saveBtn" type="button"><span>MEM</span><small>Guardar</small></button>
+          </div>
+
+          <p class="keypad-hint" id="keypadHint" aria-live="polite">Comienza pulsando POWER.</p>
+
+          <div class="meter-footer"><span>IEC 61672 • IEC 61260</span><span>Uso didáctico</span></div>
+        </div>
+      </article>
+      <button class="explain-current" id="explainCurrentBtn" type="button">¿Qué significa esta pantalla?</button>
+    </section>
+
+    <aside class="learning-panel" aria-labelledby="learningTitle">
+      <div class="learning-header">
+        <div><p class="eyebrow">PANEL DIDÁCTICO</p><h2 id="learningTitle">¿Qué estás viendo?</h2></div>
+        <span class="live-pill" id="learningStatus">Equipo apagado</span>
+      </div>
+
+      <div class="lesson-card accent" id="lessonCard">
+        <span class="lesson-kicker" id="lessonKicker">PREPARACIÓN</span>
+        <h3 id="lessonTitle">Antes de medir</h3>
+        <div class="lesson-facts" aria-live="polite">
+          <div><span>¿Qué es?</span><p id="lessonText">Es la inspección previa del instrumento antes de comenzar una evaluación.</p></div>
+          <div><span>¿Para qué sirve?</span><p id="lessonPurpose">Permite detectar daños, batería insuficiente o una configuración inadecuada.</p></div>
+          <div><span>¿Cómo se interpreta?</span><p id="lessonInterpret">El equipo debe estar íntegro, con calibración metrológica vigente y listo para la comprobación de campo.</p></div>
+        </div>
+      </div>
+
+      <div class="settings-summary">
+        <button type="button" class="setting-explain" data-topic="weighting"><span>Ponderación</span><strong id="summaryWeighting">A</strong><small id="summaryWeightingHelp">Respuesta aproximada del oído</small><i>Ver explicación</i></button>
+        <button type="button" class="setting-explain" data-topic="time"><span>Respuesta</span><strong id="summaryTime">FAST</strong><small id="summaryTimeHelp">Constante de 125 ms</small><i>Ver explicación</i></button>
+        <button type="button" class="setting-explain" data-topic="view"><span>Visualización</span><strong id="summaryMode">GLOBAL</strong><small id="summaryModeHelp">Nivel total de ruido</small><i>Ver explicación</i></button>
+        <button type="button" class="setting-explain" data-topic="range"><span>Rango</span><strong id="summaryRange">AUTO</strong><small id="summaryRangeHelp">Selección automática</small><i>Ver explicación</i></button>
+      </div>
+
+      <div class="interpretation-card">
+        <div class="interpretation-heading"><strong>Interpretación simulada</strong><span id="riskBadge" class="risk neutral">Sin medición</span></div>
+        <p id="interpretationText">Enciende y configura el equipo para comenzar.</p>
+      </div>
+
+      <details class="quick-reference">
+        <summary>Referencia rápida de lo que aparece en pantalla</summary>
+        <dl>
+          <div><dt>LAF</dt><dd><strong>L</strong>: nivel; <strong>A</strong>: ponderación A; <strong>F</strong>: respuesta Fast.</dd></div>
+          <div><dt>LAeq</dt><dd>Promedio energético del ruido durante todo el tiempo de medición.</dd></div>
+          <div><dt>Lmax</dt><dd>Mayor nivel registrado usando la ponderación y respuesta seleccionadas.</dd></div>
+          <div><dt>LCpeak</dt><dd>Máximo valor instantáneo de pico con ponderación C; no es lo mismo que Lmax.</dd></div>
+          <div><dt>1/1 OCT</dt><dd>Separa el ruido en bandas amplias para reconocer dónde se concentra su energía.</dd></div>
+          <div><dt>1/3 OCT</dt><dd>Divide cada octava en tres bandas y permite identificar tonos con mayor precisión.</dd></div>
+          <div><dt>OVR</dt><dd>La señal está fuera del rango seleccionado; la medición no debe aceptarse.</dd></div>
+        </dl>
+      </details>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <dialog id="helpDialog" class="help-dialog">
+    <form method="dialog">
+      <button class="dialog-close" value="close" aria-label="Cerrar">×</button>
+      <p class="eyebrow">AYUDA DEL SIMULADOR</p>
+      <h2>Manual rápido del MSL–PRO 360</h2>
+      <p class="dialog-intro">Este equipo virtual reúne funciones habituales de distintos sonómetros. La ubicación y los nombres pueden cambiar según la marca y el modelo real.</p>
+      <h3>Botones físicos</h3>
+      <div class="help-grid">
+        <div><strong>POWER</strong><span>Enciende o apaga el instrumento.</span></div>
+        <div><strong>MENU</strong><span>Abre configuración, calibración, visualización y memoria.</span></div>
+        <div><strong>▲ / ▼</strong><span>Recorre opciones o selecciona bandas del espectro.</span></div>
+        <div><strong>OK</strong><span>Confirma la opción resaltada.</span></div>
+        <div><strong>▶Ⅱ</strong><span>Inicia o pausa la medición.</span></div>
+        <div><strong>MEM</strong><span>Guarda el resultado actual.</span></div>
+      </div>
+      <div class="function-manual">
+        <details id="manual-weighting">
+          <summary>Ponderaciones A, C y Z</summary>
+          <p><strong>A:</strong> se utiliza habitualmente para valorar exposición auditiva. <strong>C:</strong> conserva mejor las bajas frecuencias y se emplea en mediciones de pico y comparaciones C–A. <strong>Z:</strong> ofrece una respuesta esencialmente plana dentro del intervalo especificado.</p>
+        </details>
+        <details id="manual-time">
+          <summary>Respuestas Fast, Slow e Impulse</summary>
+          <p><strong>Fast:</strong> responde rápidamente y permite observar variaciones. <strong>Slow:</strong> estabiliza la lectura cuando fluctúa. <strong>Impulse:</strong> da mayor relevancia a cambios bruscos, pero no sustituye el parámetro Peak.</p>
+        </details>
+        <details id="manual-indicators">
+          <summary>LAF, LAeq, Lmax y LCpeak</summary>
+          <p>La lectura grande es el nivel instantáneo. LAeq integra la energía durante el periodo; Lmax conserva el mayor nivel temporal; LCpeak captura el máximo pico. Cada indicador responde una pregunta diferente.</p>
+        </details>
+        <details id="manual-view">
+          <summary>Nivel global, octavas y tercios de octava</summary>
+          <p>El nivel global resume todo el ruido en un valor. Las octavas muestran su distribución por frecuencias. Los tercios de octava aportan mayor resolución para reconocer componentes tonales y diseñar controles.</p>
+        </details>
+        <details id="manual-range">
+          <summary>Rango automático, subrango y sobrecarga</summary>
+          <p>El rango debe contener los niveles esperados. Si aparece OVR, la señal quedó fuera del intervalo elegido y el resultado no es válido. AUTO facilita el aprendizaje, pero conviene comprender el ajuste manual.</p>
+        </details>
+        <details id="manual-calibration">
+          <summary>Calibración y verificación de campo</summary>
+          <p>La comprobación con calibrador antes y después de medir ayuda a detectar deriva. No debe confundirse con la calibración metrológica periódica realizada por un laboratorio competente.</p>
+        </details>
+        <details id="manual-memory">
+          <summary>Memoria y trazabilidad</summary>
+          <p>Guardar el resultado no basta: en un estudio real deben documentarse fecha, lugar, tarea, posición, duración, configuración, instrumento, calibrador y condiciones representativas.</p>
+        </details>
+      </div>
+      <p class="help-note">Completa primero el modo guiado. Después cambia de escenario y explora libremente las configuraciones.</p>
+      <button class="primary-dialog-btn" value="close">Entendido</button>
+    </form>
+  </dialog>
+
+  <footer class="page-footer">
+    <span>© La Movida de SST Plus</span>
+    <span>Elaborado por <strong>David Linares Brea</strong></span>
+    <a href="mailto:info@movidasst.com">info@movidasst.com</a>
+    <a href="tel:+56968615650">+56 9 6861 5650</a>
+    <a href="https://whatsapp.com/channel/0029Va0mlH5Jf05mrcCz8r3e" target="_self">Canal de WhatsApp</a>
+  </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
