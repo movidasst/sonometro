@@ -7,7 +7,8 @@ Aplicación didáctica interactiva para que profesionales de Seguridad y Salud e
 - Acceso exclusivo para integrantes registrados de La Movida SST Plus mediante cédula y código de integrante.
 - Simulación de ponderaciones A, C y Z.
 - Respuestas temporales FAST, SLOW e IMPULSE.
-- Nivel global, bandas de octava y tercios de octava.
+- Nivel global, 10 bandas de octava entre 31,5 Hz y 16 kHz, y 29 bandas de tercio de octava entre 25 Hz y 16 kHz.
+- Selector visible para alternar entre Global, 1/1 Octava y 1/3 Tercio; cada barra puede seleccionarse para consultar su frecuencia y nivel.
 - Indicadores LAF, LAeq, Lmax y LCpeak.
 - Calibración de campo, rangos, sobrecarga y memoria local.
 - Tutorial guiado y explicaciones de qué es, para qué sirve y cómo interpretar cada función.
@@ -20,7 +21,7 @@ npm install
 npm run dev
 ```
 
-Los archivos públicos se encuentran en `dist/`.
+Los archivos públicos se encuentran en `dist/`. La raíz del repositorio conserva una copia lista para GitHub Pages y el dominio `sonometro.movidasst.com`.
 
 ## Acceso y seguridad
 
