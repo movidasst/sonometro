@@ -71,6 +71,7 @@
     <div class="top-actions">
       <button id="guidedToggle" class="chip active" type="button" aria-pressed="true">Modo guiado</button>
       <button id="soundToggle" class="chip" type="button" aria-pressed="false">Sonido: apagado</button>
+      <button id="tutorialBtn" class="chip tutorial-chip" type="button">Tutorial</button>
       <button id="helpBtn" class="manual-chip" type="button" aria-label="Abrir manual">Manual</button>
     </div>
   </header>
@@ -155,10 +156,18 @@
       </section>
 
       <div class="mission-card" id="guideCard" aria-live="polite">
-        <div class="mission-heading"><span id="guideStep">Paso 1 de 6</span><span class="status-dot"></span></div>
-        <div class="guide-progress" aria-hidden="true"><i id="guideProgress"></i></div>
+        <div class="mission-heading"><span id="guideStep">Paso 1 de 6</span><span id="guidePercent">0%</span></div>
+        <div class="guide-progress" role="progressbar" aria-label="Progreso del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="guideProgress"></i></div>
         <strong id="guideTitle">Enciende el instrumento</strong>
         <p id="guideText">Pulsa el botón de encendido. En una medición real, verifica primero el estado físico, la batería y el micrófono.</p>
+        <ol class="guide-checklist" id="guideChecklist" aria-label="Etapas de la práctica guiada">
+          <li data-guide-key="power"><i>1</i><span>Encender</span></li>
+          <li data-guide-key="calibration"><i>2</i><span>Verificar</span></li>
+          <li data-guide-key="configured"><i>3</i><span>Configurar</span></li>
+          <li data-guide-key="measured"><i>4</i><span>Medir</span></li>
+          <li data-guide-key="spectrum"><i>5</i><span>Analizar</span></li>
+          <li data-guide-key="saved"><i>6</i><span>Guardar</span></li>
+        </ol>
         <button id="locateStepBtn" class="locate-step" type="button">Muéstrame dónde</button>
       </div>
 
@@ -336,9 +345,22 @@
   <dialog id="helpDialog" class="help-dialog">
     <form method="dialog">
       <button class="dialog-close" value="close" aria-label="Cerrar">×</button>
-      <p class="eyebrow">AYUDA DEL SIMULADOR</p>
-      <h2>Manual rápido del MSL–PRO 360</h2>
-      <p class="dialog-intro">Este equipo virtual reúne funciones habituales de distintos sonómetros. La ubicación y los nombres pueden cambiar según la marca y el modelo real.</p>
+      <p class="eyebrow">MANUAL DE USUARIO</p>
+      <h2>Cómo usar e interpretar el MSL–PRO 360</h2>
+      <p class="dialog-intro">Consulta una función mientras practicas. El equipo virtual reúne opciones habituales de distintos sonómetros; la ubicación y los nombres pueden cambiar según el modelo real.</p>
+
+      <label class="manual-search" for="manualSearch"><span>Buscar en el manual</span><input id="manualSearch" type="search" placeholder="Ej.: LAeq, octava, calibración…" autocomplete="off"></label>
+      <nav class="manual-nav" aria-label="Temas principales del manual">
+        <button type="button" data-manual-target="manual-start">Primeros pasos</button>
+        <button type="button" data-manual-target="manual-indicators">Lecturas</button>
+        <button type="button" data-manual-target="manual-view">Bandas</button>
+        <button type="button" data-manual-target="manual-errors">Problemas</button>
+      </nav>
+
+      <div class="manual-quick-start">
+        <strong>Secuencia recomendada</strong>
+        <ol><li>Inspeccionar</li><li>Verificar</li><li>Configurar</li><li>Medir</li><li>Analizar</li><li>Documentar</li></ol>
+      </div>
       <h3>Botones físicos</h3>
       <div class="help-grid">
         <div><strong>POWER</strong><span>Enciende o apaga el instrumento.</span></div>
@@ -349,21 +371,32 @@
         <div><strong>MEM</strong><span>Guarda el resultado actual.</span></div>
       </div>
       <div class="function-manual">
+        <details id="manual-start" open>
+          <summary>Primeros pasos: una medición completa</summary>
+          <div class="manual-body"><ol>
+            <li><strong>Inspecciona:</strong> revisa micrófono, pantalla, batería y vigencia metrológica.</li>
+            <li><strong>Verifica:</strong> coloca el calibrador acústico y comprueba la respuesta antes de medir.</li>
+            <li><strong>Configura:</strong> elige ponderación, respuesta temporal, rango y vista según el objetivo.</li>
+            <li><strong>Mide:</strong> ubica el micrófono correctamente, evita reflexiones y espera un periodo representativo.</li>
+            <li><strong>Analiza:</strong> compara nivel instantáneo, LAeq, Lmax, LCpeak y distribución por frecuencias.</li>
+            <li><strong>Documenta:</strong> guarda el resultado junto con tarea, duración, posición y condiciones observadas.</li>
+          </ol></div>
+        </details>
         <details id="manual-weighting">
           <summary>Ponderaciones A, C y Z</summary>
-          <p><strong>A:</strong> se utiliza habitualmente para valorar exposición auditiva. <strong>C:</strong> conserva mejor las bajas frecuencias y se emplea en mediciones de pico y comparaciones C–A. <strong>Z:</strong> ofrece una respuesta esencialmente plana dentro del intervalo especificado.</p>
+          <div class="manual-body"><p><strong>A:</strong> se utiliza habitualmente para valorar exposición auditiva. <strong>C:</strong> conserva mejor las bajas frecuencias y se emplea en mediciones de pico y comparaciones C–A. <strong>Z:</strong> ofrece una respuesta esencialmente plana dentro del intervalo especificado.</p><p class="manual-tip"><strong>Idea clave:</strong> la letra forma parte de la unidad: dB(A), dB(C) o dB(Z). No compares valores con ponderaciones diferentes como si fueran equivalentes.</p></div>
         </details>
         <details id="manual-time">
           <summary>Respuestas Fast, Slow e Impulse</summary>
-          <p><strong>Fast:</strong> responde rápidamente y permite observar variaciones. <strong>Slow:</strong> estabiliza la lectura cuando fluctúa. <strong>Impulse:</strong> da mayor relevancia a cambios bruscos, pero no sustituye el parámetro Peak.</p>
+          <div class="manual-body"><p><strong>Fast:</strong> responde rápidamente y permite observar variaciones. <strong>Slow:</strong> estabiliza la lectura cuando fluctúa. <strong>Impulse:</strong> da mayor relevancia a cambios bruscos, pero no sustituye el parámetro Peak.</p><p class="manual-tip"><strong>Cómo elegir:</strong> usa Fast para seguir cambios, Slow para estabilizar una lectura fluctuante y LCpeak cuando la pregunta sea por el pico máximo.</p></div>
         </details>
         <details id="manual-indicators">
           <summary>LAF, LAeq, Lmax y LCpeak</summary>
-          <p>La lectura grande es el nivel instantáneo. LAeq integra la energía durante el periodo; Lmax conserva el mayor nivel temporal; LCpeak captura el máximo pico. Cada indicador responde una pregunta diferente.</p>
+          <div class="manual-body"><p>La lectura grande es el nivel instantáneo. LAeq integra la energía durante el periodo; Lmax conserva el mayor nivel temporal; LCpeak captura el máximo pico. Cada indicador responde una pregunta diferente.</p><dl class="manual-dictionary"><div><dt>LAF</dt><dd>¿Qué nivel muestra ahora, con A y Fast?</dd></div><div><dt>LAeq</dt><dd>¿Qué nivel constante tendría la misma energía acumulada?</dd></div><div><dt>Lmax</dt><dd>¿Cuál fue la mayor lectura temporal?</dd></div><div><dt>LCpeak</dt><dd>¿Cuál fue el pico instantáneo máximo?</dd></div></dl></div>
         </details>
         <details id="manual-view">
           <summary>Nivel global, octavas y tercios de octava</summary>
-          <p>El nivel global resume todo el ruido en un valor. Las octavas muestran su distribución por frecuencias. Los tercios de octava aportan mayor resolución para reconocer componentes tonales y diseñar controles.</p>
+          <div class="manual-body"><p>El nivel global resume todo el ruido en un valor. Las octavas muestran su distribución por frecuencias. Los tercios de octava aportan mayor resolución para reconocer componentes tonales y diseñar controles.</p><div class="manual-compare"><div><strong>1/1 octava</strong><span>Diagnóstico general y rápido. Cada banda es amplia.</span></div><div><strong>1/3 octava</strong><span>Mayor detalle para localizar tonos y seleccionar controles.</span></div></div><p class="manual-tip"><strong>Cómo leer el gráfico:</strong> la barra más alta identifica la zona de frecuencia dominante. Toca una barra para ver su frecuencia central y su nivel.</p></div>
         </details>
         <details id="manual-range">
           <summary>Rango automático, subrango y sobrecarga</summary>
@@ -375,11 +408,61 @@
         </details>
         <details id="manual-memory">
           <summary>Memoria y trazabilidad</summary>
-          <p>Guardar el resultado no basta: en un estudio real deben documentarse fecha, lugar, tarea, posición, duración, configuración, instrumento, calibrador y condiciones representativas.</p>
+          <div class="manual-body"><p>Guardar el resultado no basta: en un estudio real deben documentarse fecha, lugar, tarea, posición, duración, configuración, instrumento, calibrador y condiciones representativas.</p></div>
+        </details>
+        <details id="manual-errors">
+          <summary>Errores frecuentes y cómo corregirlos</summary>
+          <div class="manual-body"><ul>
+            <li><strong>OVR:</strong> selecciona un rango superior y repite la medición.</li>
+            <li><strong>Lectura muy inestable:</strong> comprueba la fuente, la posición y prueba Slow solo para facilitar la observación.</li>
+            <li><strong>Se midió sin verificar:</strong> realiza la comprobación de campo y reinicia el procedimiento.</li>
+            <li><strong>Se interpretó una lectura breve como exposición:</strong> amplía el tiempo y calcula el indicador de exposición aplicable.</li>
+            <li><strong>No se identifica la fuente dominante:</strong> compara 1/1 y 1/3 de octava y revisa las barras más altas.</li>
+          </ul></div>
+        </details>
+        <details id="manual-glossary">
+          <summary>Glosario esencial</summary>
+          <div class="manual-body"><dl class="manual-dictionary"><div><dt>dB</dt><dd>Nivel expresado en decibeles.</dd></div><div><dt>Hz</dt><dd>Frecuencia: indica si el sonido es grave, medio o agudo.</dd></div><div><dt>Global</dt><dd>Suma energética del ruido dentro del intervalo medido.</dd></div><div><dt>Banda</dt><dd>Intervalo de frecuencias representado por una barra.</dd></div><div><dt>OVR</dt><dd>Sobrecarga: el nivel supera el rango seleccionado.</dd></div></dl></div>
+        </details>
+        <details id="manual-shortcuts">
+          <summary>Atajos de teclado</summary>
+          <div class="manual-body"><p><strong>P:</strong> encender · <strong>M:</strong> menú · <strong>↑/↓:</strong> recorrer · <strong>Enter:</strong> aceptar · <strong>Espacio:</strong> medir/pausar · <strong>S:</strong> guardar · <strong>Esc:</strong> volver.</p></div>
         </details>
       </div>
+      <p id="manualEmpty" class="manual-empty" hidden>No encontramos ese término. Prueba con “LAeq”, “octava”, “rango” o “calibración”.</p>
       <p class="help-note">Completa primero el modo guiado. Después cambia de escenario y explora libremente las configuraciones.</p>
-      <button class="primary-dialog-btn" value="close">Entendido</button>
+      <div class="dialog-actions"><button id="manualTutorialBtn" class="secondary-dialog-btn" type="button">Abrir tutorial guiado</button><button class="primary-dialog-btn" value="close">Volver al equipo</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="tutorialDialog" class="tutorial-dialog" aria-labelledby="tutorialTitle">
+    <form method="dialog">
+      <button class="dialog-close" value="close" aria-label="Cerrar tutorial">×</button>
+      <div class="tutorial-brand"><img src="assets/logo-movida-sst-plus.png" alt=""><span>LABORATORIO DIDÁCTICO</span></div>
+      <div class="tutorial-status"><span id="tutorialCounter" aria-live="polite">1 de 3</span><div aria-hidden="true"><i class="active"></i><i></i><i></i></div></div>
+
+      <section class="tutorial-page" data-tutorial-step="0">
+        <p class="eyebrow">BIENVENIDA</p>
+        <h2 id="tutorialTitle">Aprende el flujo, no solo los botones</h2>
+        <p>La práctica reproduce la lógica de una medición profesional. El objetivo es que entiendas qué configurar, para qué sirve y cómo interpretar lo que aparece.</p>
+        <ol class="tutorial-flow"><li><i>1</i><span>Inspeccionar</span></li><li><i>2</i><span>Verificar</span></li><li><i>3</i><span>Configurar</span></li><li><i>4</i><span>Medir</span></li><li><i>5</i><span>Analizar</span></li><li><i>6</i><span>Documentar</span></li></ol>
+      </section>
+
+      <section class="tutorial-page" data-tutorial-step="1" hidden>
+        <p class="eyebrow">DOS IDEAS CLAVE</p>
+        <h2>Decibeles y frecuencia responden preguntas distintas</h2>
+        <div class="tutorial-concepts"><div><strong>dB</strong><span>¿Cuánto nivel de ruido hay?</span><small>Observa LAF, LAeq, Lmax y LCpeak.</small></div><div><strong>Hz</strong><span>¿En qué zona se concentra?</span><small>Graves, medios o agudos mediante bandas.</small></div></div>
+        <p class="tutorial-callout">Un nivel global alto indica magnitud; las bandas de octava y tercio de octava ayudan a encontrar dónde está la energía para orientar el control.</p>
+      </section>
+
+      <section class="tutorial-page" data-tutorial-step="2" hidden>
+        <p class="eyebrow">APRENDER HACIENDO</p>
+        <h2>La interfaz te acompaña durante la práctica</h2>
+        <div class="tutorial-tools"><div><i>✓</i><span><strong>Lista de 6 pasos</strong>Se completa automáticamente.</span></div><div><i>?</i><span><strong>¿Qué estás viendo?</strong>Explica cada pantalla en contexto.</span></div><div><i>⌁</i><span><strong>Manual con búsqueda</strong>Resuelve dudas sin salir del equipo.</span></div></div>
+        <p class="tutorial-callout warning">Los resultados son simulados y didácticos. No sustituyen un sonómetro Clase 1 o Clase 2 ni una evaluación profesional.</p>
+      </section>
+
+      <div class="tutorial-actions"><button id="tutorialSkipBtn" class="tutorial-skip" value="close">Explorar libremente</button><div><button id="tutorialBackBtn" type="button" hidden>Anterior</button><button id="tutorialNextBtn" type="button">Siguiente</button><button id="tutorialStartBtn" type="button" hidden>Iniciar práctica guiada</button></div></div>
     </form>
   </dialog>
 

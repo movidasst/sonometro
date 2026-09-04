@@ -11,7 +11,10 @@ Aplicación didáctica interactiva para que profesionales de Seguridad y Salud e
 - Selector visible para alternar entre Global, 1/1 Octava y 1/3 Tercio; cada barra puede seleccionarse para consultar su frecuencia y nivel.
 - Indicadores LAF, LAeq, Lmax y LCpeak.
 - Calibración de campo, rangos, sobrecarga y memoria local.
-- Tutorial guiado y explicaciones de qué es, para qué sirve y cómo interpretar cada función.
+- Tutorial inicial de tres pantallas para comprender el flujo profesional, la diferencia entre dB y Hz y la forma de aprender dentro del simulador.
+- Práctica guiada de seis etapas con progreso automático: encender, verificar, configurar, medir, analizar y guardar.
+- Manual integrado con buscador, acceso rápido por temas, procedimiento completo, interpretación de indicadores, comparación 1/1 vs. 1/3 de octava, errores frecuentes, glosario y atajos de teclado.
+- Explicaciones contextuales de qué es, para qué sirve y cómo interpretar cada función o pantalla.
 - Diseño responsivo para computadora, tableta y teléfono.
 
 ## Desarrollo local

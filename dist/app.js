@@ -6,6 +6,7 @@
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_bRnkA6PA8-v073nrw9zxiQ_8rVGiOn1";
   const ACCESS_SESSION_KEY = "movida-sst-sonometro-session";
   const ACCESS_ATTEMPTS_KEY = "movida-sst-sonometro-attempts";
+  const TUTORIAL_SEEN_KEY = "movida-sst-sonometro-tutorial-v1";
   const ACCESS_DURATION = 20 * 60 * 1000;
   const BLOCK_DURATION = 15 * 60 * 1000;
   const MAX_ATTEMPTS = 5;
@@ -108,6 +109,7 @@
   let audioContext = null;
   let audioNodes = [];
   let accessTimer = null;
+  let tutorialIndex = 0;
 
   function readStoredJson(storage, key, fallback) {
     try { return JSON.parse(storage.getItem(key) || "null") || fallback; }
@@ -168,6 +170,9 @@
     document.body.classList.remove("auth-locked");
     document.documentElement.scrollTop = 0;
     scheduleAccessExpiry(expiresAt);
+    setTimeout(() => {
+      if (!localStorage.getItem(TUTORIAL_SEEN_KEY)) openTutorial();
+    }, 280);
   }
 
   function closeMemberSession(expired = false) {
@@ -793,7 +798,20 @@
       ["saved", "Guarda el resultado", "Pulsa MEM para conservar LAeq, Lmax, LCpeak, tiempo y configuración en la memoria simulada."]
     ];
     const index = steps.findIndex(([key]) => !state.milestones[key]);
+    const completed = steps.filter(([key]) => state.milestones[key]).length;
+    const percent = Math.round((completed / steps.length) * 100);
     const card = $("guideCard");
+    $("guidePercent").textContent = `${percent}%`;
+    const progress = $("guideProgress").parentElement;
+    progress.setAttribute("aria-valuenow", String(percent));
+    document.querySelectorAll("[data-guide-key]").forEach(item => {
+      const key = item.dataset.guideKey;
+      const isDone = Boolean(state.milestones[key]);
+      const isCurrent = index >= 0 && steps[index][0] === key;
+      item.classList.toggle("done", isDone);
+      item.classList.toggle("current", isCurrent);
+      item.querySelector("i").textContent = isDone ? "✓" : String(steps.findIndex(([stepKey]) => stepKey === key) + 1);
+    });
     if (index === -1) {
       $("guideStep").textContent = "Recorrido completado";
       $("guideTitle").textContent = "Explora libremente";
@@ -805,7 +823,7 @@
       $("guideStep").textContent = `Paso ${index + 1} de 6`;
       $("guideTitle").textContent = steps[index][1];
       $("guideText").textContent = steps[index][2];
-      $("guideProgress").style.width = `${index * (100 / steps.length)}%`;
+      $("guideProgress").style.width = `${percent}%`;
       $("locateStepBtn").hidden = false;
       card.classList.remove("complete");
     }
@@ -816,20 +834,82 @@
     const keys = ["power", "calibration", "configured", "measured", "spectrum", "saved"];
     const index = keys.findIndex(key => !state.milestones[key]);
     if (index < 0) return;
-    const target = index === 0 ? $("powerBtn") : index === 3 ? $("runBtn") : index === 5 ? $("saveBtn") : $("menuBtn");
+    const targets = [
+      $("quickPowerBtn"),
+      $("quickCalibrateBtn"),
+      document.querySelector('[data-setting="weighting"][data-value="A"]'),
+      $("quickRunBtn"),
+      document.querySelector('.display-switcher [data-value="octave"]'),
+      $("quickSaveBtn")
+    ];
+    const target = targets[index];
     target.scrollIntoView({ behavior: "smooth", block: "center" });
     target.classList.remove("coach-target");
     requestAnimationFrame(() => target.classList.add("coach-target"));
     setTimeout(() => { target.classList.remove("coach-target"); target.focus({ preventScroll: true }); }, 3100);
+    showToast(`Paso ${index + 1}: ${$("guideTitle").textContent}`);
   }
 
   function openManual(topic) {
     const dialog = $("helpDialog");
+    $("manualSearch").value = "";
+    filterManual("");
     dialog.querySelectorAll(".function-manual details").forEach(detail => detail.open = false);
     dialog.showModal();
-    const selected = $(`manual-${topic}`) || $("manual-indicators");
+    const selected = topic ? ($(`manual-${topic}`) || $("manual-indicators")) : $("manual-start");
     selected.open = true;
     requestAnimationFrame(() => selected.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
+
+  function filterManual(query) {
+    const normalized = query.trim().toLocaleLowerCase("es");
+    let matches = 0;
+    document.querySelectorAll(".function-manual details").forEach(detail => {
+      const visible = !normalized || detail.textContent.toLocaleLowerCase("es").includes(normalized);
+      detail.hidden = !visible;
+      if (visible) {
+        matches += 1;
+        if (normalized) detail.open = true;
+      }
+    });
+    $("manualEmpty").hidden = matches > 0;
+  }
+
+  function renderTutorial() {
+    document.querySelectorAll("[data-tutorial-step]").forEach((page, index) => page.hidden = index !== tutorialIndex);
+    $("tutorialCounter").textContent = `${tutorialIndex + 1} de 3`;
+    document.querySelectorAll(".tutorial-status i").forEach((dot, index) => dot.classList.toggle("active", index <= tutorialIndex));
+    $("tutorialBackBtn").hidden = tutorialIndex === 0;
+    $("tutorialNextBtn").hidden = tutorialIndex === 2;
+    $("tutorialStartBtn").hidden = tutorialIndex !== 2;
+  }
+
+  function openTutorial() {
+    const dialog = $("tutorialDialog");
+    tutorialIndex = 0;
+    renderTutorial();
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function resetGuidedPractice() {
+    stopMeasurement();
+    stopSound(false);
+    state.powered = false;
+    state.booting = false;
+    state.sound = false;
+    state.calibrated = false;
+    state.view = "global";
+    state.returnView = "global";
+    state.milestones = { power: false, calibration: false, configured: false, measured: false, spectrum: false, saved: false };
+    resetMeasurement();
+    $("screen").className = "screen off";
+    $("soundToggle").textContent = "Sonido: apagado";
+    $("soundToggle").classList.remove("active");
+    $("soundToggle").setAttribute("aria-pressed", "false");
+    state.guided = true;
+    $("guidedToggle").classList.add("active");
+    $("guidedToggle").setAttribute("aria-pressed", "true");
+    updateAll();
   }
 
   function ensurePowered() {
@@ -973,8 +1053,34 @@
     updateGuide();
   });
   $("soundToggle").addEventListener("click", toggleSound);
-  $("helpBtn").addEventListener("click", () => $("helpDialog").showModal());
-  $("mobileHelpBtn").addEventListener("click", () => $("helpDialog").showModal());
+  $("tutorialBtn").addEventListener("click", openTutorial);
+  $("helpBtn").addEventListener("click", () => openManual());
+  $("mobileHelpBtn").addEventListener("click", () => openManual());
+  $("manualSearch").addEventListener("input", event => filterManual(event.target.value));
+  document.querySelectorAll("[data-manual-target]").forEach(button => button.addEventListener("click", () => {
+    const selected = $(button.dataset.manualTarget);
+    filterManual("");
+    $("manualSearch").value = "";
+    document.querySelectorAll(".function-manual details").forEach(detail => detail.open = false);
+    selected.hidden = false;
+    selected.open = true;
+    selected.scrollIntoView({ behavior: "smooth", block: "center" });
+  }));
+  $("manualTutorialBtn").addEventListener("click", () => {
+    $("helpDialog").close();
+    openTutorial();
+  });
+  $("tutorialBackBtn").addEventListener("click", () => { tutorialIndex = Math.max(0, tutorialIndex - 1); renderTutorial(); });
+  $("tutorialNextBtn").addEventListener("click", () => { tutorialIndex = Math.min(2, tutorialIndex + 1); renderTutorial(); });
+  $("tutorialStartBtn").addEventListener("click", () => {
+    localStorage.setItem(TUTORIAL_SEEN_KEY, "1");
+    $("tutorialDialog").close();
+    resetGuidedPractice();
+    $("guideCard").scrollIntoView({ behavior: "smooth", block: "center" });
+    setTimeout(() => locateCurrentStep(), 450);
+  });
+  $("tutorialSkipBtn").addEventListener("click", () => localStorage.setItem(TUTORIAL_SEEN_KEY, "1"));
+  $("tutorialDialog").addEventListener("close", () => localStorage.setItem(TUTORIAL_SEEN_KEY, "1"));
   document.querySelectorAll("[data-setting]").forEach(button => button.addEventListener("click", () => applyDirectSetting(button.dataset.setting, button.dataset.value)));
   $("quickRangeSelect").addEventListener("change", event => applyDirectSetting("range", event.target.value));
   $("cal94").addEventListener("click", () => { state.calTarget = 94; renderCalibration(); updateLearning(); });
