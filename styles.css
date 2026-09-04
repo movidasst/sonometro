@@ -632,6 +632,9 @@ body { background: var(--night); }
 }
 .resource-link { border-color: rgba(137,243,235,.2); color: #dff9f7; background: rgba(50,214,210,.05); }
 .resource-link:hover { border-color: var(--cyan); color: white; background: rgba(50,214,210,.12); }
+.manual-download-link { gap: 7px; border-color: rgba(255,182,0,.55); color: #ffe394; background: rgba(255,182,0,.1); }
+.manual-download-link span { font-size: 18px; line-height: .8; }
+.manual-download-link:hover { border-color: var(--yellow); color: #071726; background: var(--yellow); }
 .channel-link { border-color: rgba(112,173,71,.35); color: #c8f2b4; background: rgba(112,173,71,.08); }
 .member-session { color: #9eb5c2; }.member-session strong { color: white; }
 .member-session button { border-color: rgba(255,255,255,.18); color: #ffd2d7; background: rgba(255,255,255,.04); }
