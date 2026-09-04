@@ -378,6 +378,33 @@ h1 { margin: 0; color: var(--navy); font-size: clamp(25px, 3vw, 39px); line-heig
 
 .toast { position: fixed; z-index: 30; left: 50%; bottom: 24px; max-width: min(90vw, 470px); padding: 12px 17px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; border-radius: 10px; color: white; background: #152b42; box-shadow: 0 12px 32px rgba(0,0,0,.28); font-size: 14px; font-weight: 700; transition: .25s ease; }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
+.guide-coach {
+  width: min(410px, calc(100vw - 32px));
+  padding: 13px;
+  position: fixed;
+  z-index: 35;
+  right: 18px;
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(137,243,235,.42);
+  border-left: 5px solid var(--yellow);
+  border-radius: 15px;
+  color: white;
+  background: rgba(5,24,40,.97);
+  box-shadow: 0 22px 60px rgba(0,0,0,.45), inset 0 1px rgba(255,255,255,.05);
+  backdrop-filter: blur(16px);
+}
+.guide-coach-copy { min-width: 0; }
+.guide-coach span, .guide-coach strong, .guide-coach p { display: block; }
+.guide-coach span { margin-bottom: 3px; color: var(--cyan-soft); font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.guide-coach strong { color: white; font-size: 15px; line-height: 1.2; }
+.guide-coach p { margin: 4px 0 0; color: #afc2ce; font-size: 12px; line-height: 1.35; }
+.guide-coach button { min-height: 42px; padding: 8px 11px; border: 1px solid rgba(255,182,0,.55); border-radius: 9px; color: #071726; background: var(--yellow); cursor: pointer; font-size: 12px; font-weight: 900; }
+.guide-coach.advance { animation: guideAdvance .85s ease; }
+@keyframes guideAdvance { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-8px); box-shadow: 0 25px 65px rgba(0,0,0,.5), 0 0 0 7px rgba(255,182,0,.16); } }
 .help-dialog { width: min(760px, calc(100vw - 28px)); max-height: min(90vh, 860px); padding: 0; overflow: auto; border: 0; border-radius: 20px; color: var(--ink); box-shadow: 0 35px 100px rgba(0,32,91,.36); }
 .help-dialog::backdrop { background: rgba(0,17,42,.7); backdrop-filter: blur(4px); }
 .help-dialog form { padding: 25px; position: relative; }.help-dialog h2 { margin: 0 0 8px; padding-right: 38px; color: var(--navy); font-size: 25px; }.help-dialog h3 { margin: 20px 0 9px; color: var(--navy); font-size: 16px; }.dialog-close { width: 40px; height: 40px; position: absolute; top: 12px; right: 12px; border: 0; border-radius: 50%; color: var(--navy); background: #edf2f4; cursor: pointer; font-size: 24px; }
@@ -817,6 +844,9 @@ body { background: var(--night); }
   .mobile-dock span { margin: 0 auto 4px; display: block; color: var(--cyan-soft); font: 900 16px/1 monospace; }
   .mobile-dock .mobile-run { color: #061522; background: var(--yellow); }.mobile-dock .mobile-run span { color: #061522; }
   .mobile-dock .mobile-run.running { color: white; background: var(--green); }
+  .guide-coach { width: auto; left: 10px; right: 10px; bottom: calc(max(10px, env(safe-area-inset-bottom)) + 69px); padding: 11px; gap: 9px; border-radius: 13px; }
+  .guide-coach strong { font-size: 14px; }.guide-coach p { font-size: 12px; }.guide-coach button { min-height: 40px; padding-inline: 9px; }
+  .toast { bottom: calc(max(10px, env(safe-area-inset-bottom)) + 185px); }
   .page-footer { padding-bottom: 92px; }
   .help-dialog form { padding: 22px 17px; }.help-dialog h2 { font-size: 23px; }.manual-quick-start ol { grid-template-columns: repeat(3, 1fr); row-gap: 10px; }.manual-compare, .dialog-actions { grid-template-columns: 1fr; }
   .tutorial-dialog { width: calc(100vw - 18px); }.tutorial-dialog form { min-height: min(640px, calc(100vh - 18px)); padding: 23px 17px; }.tutorial-flow { grid-template-columns: repeat(2, 1fr); }.tutorial-concepts { grid-template-columns: 1fr; }.tutorial-actions { align-items: stretch; flex-direction: column-reverse; }.tutorial-actions > div { display: grid; grid-template-columns: 1fr 1fr; }.tutorial-actions button { width: 100%; }.tutorial-actions #tutorialStartBtn { grid-column: 1 / -1; }

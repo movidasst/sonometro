@@ -156,17 +156,21 @@
       </section>
 
       <div class="mission-card" id="guideCard" aria-live="polite">
-        <div class="mission-heading"><span id="guideStep">Paso 1 de 6</span><span id="guidePercent">0%</span></div>
+        <div class="mission-heading"><span id="guideStep">Paso 1 de 10</span><span id="guidePercent">0%</span></div>
         <div class="guide-progress" role="progressbar" aria-label="Progreso del recorrido" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="guideProgress"></i></div>
         <strong id="guideTitle">Enciende el instrumento</strong>
         <p id="guideText">Pulsa el botón de encendido. En una medición real, verifica primero el estado físico, la batería y el micrófono.</p>
-        <ol class="guide-checklist" id="guideChecklist" aria-label="Etapas de la práctica guiada">
+        <ol class="guide-checklist" id="guideChecklist" aria-label="Acciones de la práctica guiada">
           <li data-guide-key="power"><i>1</i><span>Encender</span></li>
           <li data-guide-key="calibration"><i>2</i><span>Verificar</span></li>
-          <li data-guide-key="configured"><i>3</i><span>Configurar</span></li>
-          <li data-guide-key="measured"><i>4</i><span>Medir</span></li>
-          <li data-guide-key="spectrum"><i>5</i><span>Analizar</span></li>
-          <li data-guide-key="saved"><i>6</i><span>Guardar</span></li>
+          <li data-guide-key="weighting"><i>3</i><span>Pond. A</span></li>
+          <li data-guide-key="time"><i>4</i><span>Fast</span></li>
+          <li data-guide-key="range"><i>5</i><span>Rango</span></li>
+          <li data-guide-key="measured"><i>6</i><span>Medir</span></li>
+          <li data-guide-key="octave"><i>7</i><span>Octava</span></li>
+          <li data-guide-key="third"><i>8</i><span>1/3 oct.</span></li>
+          <li data-guide-key="band"><i>9</i><span>Leer banda</span></li>
+          <li data-guide-key="saved"><i>10</i><span>Guardar</span></li>
         </ol>
         <button id="locateStepBtn" class="locate-step" type="button">Muéstrame dónde</button>
       </div>
@@ -334,6 +338,15 @@
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <aside class="guide-coach" id="guideCoach" aria-live="polite" aria-atomic="true">
+    <div class="guide-coach-copy">
+      <span id="guideCoachStep">SIGUIENTE · PASO 1 DE 10</span>
+      <strong id="guideCoachTitle">Enciende el instrumento</strong>
+      <p id="guideCoachText">Pulsa Encender para iniciar la autocomprobación.</p>
+    </div>
+    <button id="guideCoachLocate" type="button">Mostrarme</button>
+  </aside>
 
   <nav class="mobile-dock" aria-label="Controles rápidos del instrumento">
     <button id="mobilePowerBtn" type="button"><span>⏻</span>Equipo</button>

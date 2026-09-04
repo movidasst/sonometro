@@ -78,7 +78,7 @@
     guided: true,
     sound: false,
     memories: loadMemories(),
-    milestones: { power: false, calibration: false, configured: false, measured: false, spectrum: false, saved: false }
+    milestones: { power: false, calibration: false, weighting: false, time: false, range: false, measured: false, octave: false, third: false, band: false, saved: false }
   };
 
   const rootMenu = [
@@ -104,12 +104,26 @@
     range: ["AUTO", "30–100", "50–120", "70–140"].map(value => ({ label: value, value }))
   };
 
+  const guideSteps = [
+    { key: "power", title: "Enciende el instrumento", text: "Pulsa Encender. Antes de usar un equipo real, revisa el micrófono, la batería, el estado físico y la vigencia metrológica.", coach: "Pulsa Encender para iniciar la autocomprobación.", target: "#quickPowerBtn" },
+    { key: "calibration", title: "Haz la verificación de campo", text: "Pulsa Calibrar. El simulador aplica una señal de 94 dB y comprueba la desviación antes de medir.", coach: "Pulsa Calibrar y confirma que aparezca CAL OK.", target: "#quickCalibrateBtn" },
+    { key: "weighting", title: "Selecciona la ponderación A", text: "Pulsa A en Ponderación. La ponderación A aproxima la sensibilidad auditiva y es habitual al valorar exposición ocupacional.", coach: "Pulsa A; aproxima la respuesta auditiva para exposición.", target: '.direct-setting [data-setting="weighting"][data-value="A"]' },
+    { key: "time", title: "Selecciona la respuesta Fast", text: "Pulsa Fast. Su constante temporal de 125 ms permite seguir variaciones más rápidamente que Slow.", coach: "Pulsa Fast; responde en 125 ms a las variaciones.", target: '.direct-setting [data-setting="time"][data-value="FAST"]' },
+    { key: "range", title: "Ajusta el rango de medición", text: "Selecciona 50–120 dB. El rango debe contener los niveles esperados; si aparece OVR, el resultado no es válido y debes usar un rango superior.", coach: "Selecciona 50–120 dB; debe contener el nivel esperado.", target: "#quickRangeSelect" },
+    { key: "measured", title: "Inicia la medición", text: "Pulsa Medir y observa la lectura instantánea, LAeq, Lmax, LCpeak y el tiempo transcurrido.", coach: "Pulsa Medir; observa LAeq, Lmax, LCpeak y tiempo.", target: "#quickRunBtn" },
+    { key: "octave", title: "Abre las bandas de octava", text: "Pulsa 1/1 Octava. Esta vista separa el ruido en bandas amplias para reconocer en qué zona se concentra la energía.", coach: "Pulsa 1/1 Octava; muestra zonas amplias de frecuencia.", target: '.display-switcher [data-value="octave"]' },
+    { key: "third", title: "Compara con tercios de octava", text: "Pulsa 1/3 Tercio. Cada octava se divide en tres bandas para localizar tonos y frecuencias dominantes con mayor precisión.", coach: "Pulsa 1/3 Tercio; ofrece más detalle para localizar tonos.", target: '.display-switcher [data-value="third"]' },
+    { key: "band", title: "Consulta una banda del espectro", text: "Toca cualquier barra. La parte inferior de la pantalla mostrará su frecuencia central en Hz y el nivel correspondiente.", coach: "Toca una barra; abajo verás sus Hz y dB.", target: "#spectrumBars .bar-wrap" },
+    { key: "saved", title: "Guarda el resultado", text: "Pulsa Guardar para conservar LAeq, Lmax, LCpeak, duración y configuración en la memoria simulada.", coach: "Pulsa Guardar; conserva la lectura y su configuración.", target: "#quickSaveBtn" }
+  ];
+
   let measureTimer = null;
   let toastTimer = null;
   let audioContext = null;
   let audioNodes = [];
   let accessTimer = null;
   let tutorialIndex = 0;
+  let lastGuideIndex = null;
 
   function readStoredJson(storage, key, fallback) {
     try { return JSON.parse(storage.getItem(key) || "null") || fallback; }
@@ -288,6 +302,11 @@
     return ({ global: "GLOBAL", octave: "1/1 OCT", third: "1/3 OCT", history: "MEMORIA", menu: "MENU", calibration: "CAL" })[view] || "GLOBAL";
   }
 
+  function markConfigurationStep(setting, value) {
+    const expected = { weighting: "A", time: "FAST", range: "50–120" };
+    if (expected[setting] === value) state.milestones[setting] = true;
+  }
+
   function powerToggle() {
     if (state.booting) return;
     if (state.powered) {
@@ -330,7 +349,7 @@
       $("spectrumView").classList.toggle("third", view === "third");
       state.selectedBand = view === "third" ? 16 : 5;
       renderSpectrum();
-      state.milestones.spectrum = true;
+      state.milestones[view] = true;
     }
     if (view === "history") { $("historyView").hidden = false; renderHistory(); }
     if (view === "menu") { $("menuView").hidden = false; renderMenu(); }
@@ -387,8 +406,10 @@
     if (state.view === "octave" || state.view === "third") {
       const count = state.view === "third" ? thirdFreqs.length : octaveFreqs.length;
       state.selectedBand = (state.selectedBand + direction + count) % count;
+      if (state.view === "third") state.milestones.band = true;
       renderSpectrum();
       updateLearning();
+      updateGuide();
     }
   }
 
@@ -429,11 +450,11 @@
 
     const choice = choices[state.menuCategory][state.menuIndex];
     if (state.menuCategory === "view") {
-      state.milestones.configured = true;
       showView(choice.value);
     } else {
+      const selectedCategory = state.menuCategory;
       state[state.menuCategory] = choice.value;
-      state.milestones.configured = true;
+      markConfigurationStep(selectedCategory, choice.value);
       const categoryName = ({ weighting: "Ponderación", time: "Respuesta", range: "Rango" })[state.menuCategory];
       showToast(`${categoryName}: ${choice.value}`);
       state.menuCategory = null;
@@ -605,17 +626,27 @@
     const frequencies = isThird ? thirdFreqs : octaveFreqs;
     const levels = isThird ? thirdLevels() : weightedOctaveLevels();
     const selected = Math.min(state.selectedBand, levels.length - 1);
+    const bars = $("spectrumBars");
     $("spectrumLabel").textContent = isThird ? "1/3 OCT" : "1/1 OCT";
     $("spectrumOverall").textContent = `${(state.leq ?? scenarios[state.scenario].base + weightingOffset()).toFixed(1)} dB`;
-    $("spectrumBars").innerHTML = levels.map((level, index) => {
+    if (bars.dataset.view !== state.view || bars.children.length !== levels.length) {
+      bars.dataset.view = state.view;
+      bars.innerHTML = levels.map((level, index) => `<button class="bar-wrap" type="button" data-band-index="${index}"><i class="spectrum-bar"></i><span class="bar-label">${frequencies[index]}</span></button>`).join("");
+      bars.querySelectorAll("[data-band-index]").forEach(button => button.addEventListener("click", () => {
+        state.selectedBand = Number(button.dataset.bandIndex);
+        if (state.view === "third") state.milestones.band = true;
+        renderSpectrum();
+        updateLearning();
+        updateGuide();
+      }));
+    }
+    bars.querySelectorAll("[data-band-index]").forEach((button, index) => {
+      const level = levels[index];
       const height = Math.max(4, Math.min(100, (level - 35) / .7));
-      return `<button class="bar-wrap ${index === selected ? "selected" : ""}" type="button" data-band-index="${index}" aria-label="Banda ${frequencies[index]} Hz, ${level.toFixed(1)} decibelios"><i class="spectrum-bar" style="height:${height}%"></i><span class="bar-label">${frequencies[index]}</span></button>`;
-    }).join("");
-    $("spectrumBars").querySelectorAll("[data-band-index]").forEach(button => button.addEventListener("click", () => {
-      state.selectedBand = Number(button.dataset.bandIndex);
-      renderSpectrum();
-      updateLearning();
-    }));
+      button.classList.toggle("selected", index === selected);
+      button.setAttribute("aria-label", `Banda ${frequencies[index]} Hz, ${level.toFixed(1)} decibelios`);
+      button.querySelector(".spectrum-bar").style.height = `${height}%`;
+    });
     $("selectedFrequency").textContent = `${frequencies[selected]} Hz`;
     $("selectedBandValue").textContent = `${levels[selected].toFixed(1)} dB${state.weighting === "Z" ? "" : `(${state.weighting})`}`;
   }
@@ -789,28 +820,21 @@
   }
 
   function updateGuide() {
-    const steps = [
-      ["power", "Enciende el instrumento", "Pulsa POWER. En un equipo real, verifica primero el estado físico, la batería y el micrófono."],
-      ["calibration", "Realiza la calibración de campo", "Abre MENU → Calibración. Selecciona 94 dB y pulsa OK para comprobar la respuesta."],
-      ["configured", "Configura la medición", "Explora ponderación, respuesta temporal, rango y visualización. No existe una configuración universal."],
-      ["measured", "Inicia la medición", "Pulsa ▶Ⅱ. Observa la lectura instantánea, LAeq, Lmax, LCpeak y el tiempo transcurrido."],
-      ["spectrum", "Analiza las frecuencias", "Selecciona 1/1 OCT y después 1/3 OCT. Usa ▲/▼ para recorrer las bandas."],
-      ["saved", "Guarda el resultado", "Pulsa MEM para conservar LAeq, Lmax, LCpeak, tiempo y configuración en la memoria simulada."]
-    ];
-    const index = steps.findIndex(([key]) => !state.milestones[key]);
-    const completed = steps.filter(([key]) => state.milestones[key]).length;
-    const percent = Math.round((completed / steps.length) * 100);
+    const index = guideSteps.findIndex(step => !state.milestones[step.key]);
+    const completed = guideSteps.filter(step => state.milestones[step.key]).length;
+    const percent = Math.round((completed / guideSteps.length) * 100);
     const card = $("guideCard");
+    const coach = $("guideCoach");
     $("guidePercent").textContent = `${percent}%`;
     const progress = $("guideProgress").parentElement;
     progress.setAttribute("aria-valuenow", String(percent));
     document.querySelectorAll("[data-guide-key]").forEach(item => {
       const key = item.dataset.guideKey;
       const isDone = Boolean(state.milestones[key]);
-      const isCurrent = index >= 0 && steps[index][0] === key;
+      const isCurrent = index >= 0 && guideSteps[index].key === key;
       item.classList.toggle("done", isDone);
       item.classList.toggle("current", isCurrent);
-      item.querySelector("i").textContent = isDone ? "✓" : String(steps.findIndex(([stepKey]) => stepKey === key) + 1);
+      item.querySelector("i").textContent = isDone ? "✓" : String(guideSteps.findIndex(step => step.key === key) + 1);
     });
     if (index === -1) {
       $("guideStep").textContent = "Recorrido completado";
@@ -819,35 +843,44 @@
       $("guideProgress").style.width = "100%";
       $("locateStepBtn").hidden = true;
       card.classList.add("complete");
+      coach.hidden = true;
     } else {
-      $("guideStep").textContent = `Paso ${index + 1} de 6`;
-      $("guideTitle").textContent = steps[index][1];
-      $("guideText").textContent = steps[index][2];
+      const step = guideSteps[index];
+      $("guideStep").textContent = `Paso ${index + 1} de ${guideSteps.length}`;
+      $("guideTitle").textContent = step.title;
+      $("guideText").textContent = step.text;
       $("guideProgress").style.width = `${percent}%`;
       $("locateStepBtn").hidden = false;
       card.classList.remove("complete");
+      $("guideCoachStep").textContent = `SIGUIENTE · PASO ${index + 1} DE ${guideSteps.length}`;
+      $("guideCoachTitle").textContent = step.title;
+      $("guideCoachText").textContent = step.coach;
+      coach.hidden = !state.guided;
     }
     card.hidden = !state.guided;
+    if (state.guided && lastGuideIndex !== null && index !== lastGuideIndex) {
+      if (index === -1) {
+        showToast("¡Práctica guiada completada!");
+      } else {
+        coach.classList.remove("advance");
+        requestAnimationFrame(() => coach.classList.add("advance"));
+        setTimeout(() => coach.classList.remove("advance"), 900);
+        showToast(`Paso completado · Ahora: ${guideSteps[index].title}`);
+      }
+    }
+    lastGuideIndex = index;
   }
 
   function locateCurrentStep() {
-    const keys = ["power", "calibration", "configured", "measured", "spectrum", "saved"];
-    const index = keys.findIndex(key => !state.milestones[key]);
+    const index = guideSteps.findIndex(step => !state.milestones[step.key]);
     if (index < 0) return;
-    const targets = [
-      $("quickPowerBtn"),
-      $("quickCalibrateBtn"),
-      document.querySelector('[data-setting="weighting"][data-value="A"]'),
-      $("quickRunBtn"),
-      document.querySelector('.display-switcher [data-value="octave"]'),
-      $("quickSaveBtn")
-    ];
-    const target = targets[index];
+    const target = document.querySelector(guideSteps[index].target);
+    if (!target) { showToast("Completa primero el paso anterior"); return; }
     target.scrollIntoView({ behavior: "smooth", block: "center" });
     target.classList.remove("coach-target");
     requestAnimationFrame(() => target.classList.add("coach-target"));
     setTimeout(() => { target.classList.remove("coach-target"); target.focus({ preventScroll: true }); }, 3100);
-    showToast(`Paso ${index + 1}: ${$("guideTitle").textContent}`);
+    showToast(`Paso ${index + 1}: ${guideSteps[index].coach}`);
   }
 
   function openManual(topic) {
@@ -900,7 +933,8 @@
     state.calibrated = false;
     state.view = "global";
     state.returnView = "global";
-    state.milestones = { power: false, calibration: false, configured: false, measured: false, spectrum: false, saved: false };
+    state.milestones = { power: false, calibration: false, weighting: false, time: false, range: false, measured: false, octave: false, third: false, band: false, saved: false };
+    lastGuideIndex = null;
     resetMeasurement();
     $("screen").className = "screen off";
     $("soundToggle").textContent = "Sonido: apagado";
@@ -920,7 +954,6 @@
 
   function applyDirectSetting(setting, value) {
     if (!ensurePowered()) return;
-    state.milestones.configured = true;
     if (setting === "view") {
       state.returnView = value;
       showView(value);
@@ -928,6 +961,7 @@
       return;
     }
     state[setting] = value;
+    markConfigurationStep(setting, value);
     if (["menu", "calibration"].includes(state.view)) showView(state.returnView);
     updateAll();
     const label = ({ weighting: "Ponderación", time: "Respuesta", range: "Rango" })[setting];
@@ -1086,6 +1120,7 @@
   $("cal94").addEventListener("click", () => { state.calTarget = 94; renderCalibration(); updateLearning(); });
   $("cal114").addEventListener("click", () => { state.calTarget = 114; renderCalibration(); updateLearning(); });
   $("locateStepBtn").addEventListener("click", locateCurrentStep);
+  $("guideCoachLocate").addEventListener("click", locateCurrentStep);
   $("explainCurrentBtn").addEventListener("click", () => {
     $("learningTitle").scrollIntoView({ behavior: "smooth", block: "start" });
     $("learningTitle").setAttribute("tabindex", "-1");
