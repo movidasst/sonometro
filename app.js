@@ -1164,3 +1164,50 @@
   updateAll();
   initializeAccessGate();
 })();
+
+// Sincroniza la nomenclatura del nivel equivalente con la ponderación activa.
+(() => {
+  "use strict";
+
+  const equivalentCode = (weighting) => `L${weighting}eq`;
+
+  function currentWeighting() {
+    const activeButton = document.querySelector('[data-setting="weighting"].active');
+    const indicator = document.getElementById("weightingIndicator");
+    return activeButton?.dataset.value || indicator?.textContent?.trim() || "A";
+  }
+
+  function replaceEquivalentCode(element, code) {
+    if (!element) return;
+    const next = element.textContent.replace(/L[ACZ]eq/g, code);
+    if (next !== element.textContent) element.textContent = next;
+  }
+
+  function syncEquivalentLabels() {
+    const weighting = currentWeighting();
+    const code = equivalentCode(weighting);
+    const screenLabel = document.querySelector("#globalView .metrics-grid > div:first-child > span");
+    if (screenLabel && screenLabel.textContent !== code) screenLabel.textContent = code;
+
+    const kicker = document.getElementById("lessonKicker")?.textContent || "";
+    if (["MEDICIÓN EN CURSO", "TRAZABILIDAD", "CONTROL DE MEDICIÓN"].includes(kicker)) {
+      replaceEquivalentCode(document.getElementById("lessonText"), code);
+      replaceEquivalentCode(document.getElementById("lessonPurpose"), code);
+      replaceEquivalentCode(document.getElementById("lessonInterpret"), code);
+    }
+  }
+
+  document.addEventListener("click", () => requestAnimationFrame(syncEquivalentLabels));
+  document.addEventListener("keydown", () => requestAnimationFrame(syncEquivalentLabels));
+
+  const indicator = document.getElementById("weightingIndicator");
+  if (indicator) {
+    new MutationObserver(syncEquivalentLabels).observe(indicator, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  }
+
+  syncEquivalentLabels();
+})();
